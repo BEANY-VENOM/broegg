@@ -26,9 +26,14 @@ const gems = [];
 const keys = {};
 
 let score = 0;
+let coins = 0;
+
 let gameOver = false;
 let levelUp = false;
+let shopOpen = false;
+
 let upgradeChoices = [];
+let shopChoices = [];
 
 let wave = 1;
 let waveKills = 0;
@@ -74,16 +79,93 @@ const upgrades = [
   }
 ];
 
+const shopItems = [
+  {
+    name: "Power Core",
+    description: "+15 damage",
+    price: 20,
+    buy() {
+      player.damage += 15;
+    }
+  },
+  {
+    name: "Turbo Trigger",
+    description: "20% faster attacks",
+    price: 25,
+    buy() {
+      player.fireRate *= 0.8;
+    }
+  },
+  {
+    name: "Running Shoes",
+    description: "+0.7 movement speed",
+    price: 20,
+    buy() {
+      player.speed += 0.7;
+    }
+  },
+  {
+    name: "Steel Plating",
+    description: "+30 maximum HP",
+    price: 30,
+    buy() {
+      player.maxHp += 30;
+      player.hp += 30;
+    }
+  },
+  {
+    name: "Magnet",
+    description: "+40 pickup range",
+    price: 20,
+    buy() {
+      player.pickupRange += 40;
+    }
+  },
+  {
+    name: "Ammo Upgrade",
+    description: "+3 bullet size",
+    price: 25,
+    buy() {
+      player.bulletSize += 3;
+    }
+  },
+  {
+    name: "Reinforced Core",
+    description: "Heal 40 HP",
+    price: 15,
+    buy() {
+      player.hp = Math.min(
+        player.maxHp,
+        player.hp + 40
+      );
+    }
+  }
+];
+
 document.addEventListener("keydown", e => {
-  keys[e.key.toLowerCase()] = true;
+  const key = e.key.toLowerCase();
+
+  keys[key] = true;
 
   if (levelUp) {
     if (e.key === "1") chooseUpgrade(0);
     if (e.key === "2") chooseUpgrade(1);
     if (e.key === "3") chooseUpgrade(2);
+    return;
   }
 
-  if (gameOver && e.key.toLowerCase() === "r") {
+  if (shopOpen) {
+    if (e.key === "1") buyShopItem(0);
+    if (e.key === "2") buyShopItem(1);
+    if (e.key === "3") buyShopItem(2);
+
+    if (key === "r") rerollShop();
+    if (key === "enter") leaveShop();
+
+    return;
+  }
+
+  if (gameOver && key === "r") {
     restartGame();
   }
 });
@@ -93,7 +175,7 @@ document.addEventListener("keyup", e => {
 });
 
 function spawnEnemy() {
-  if (gameOver || levelUp) return;
+  if (gameOver || levelUp || shopOpen) return;
 
   const side = Math.floor(Math.random() * 4);
 
@@ -128,13 +210,18 @@ function spawnEnemy() {
 function updateSpawner(delta) {
   spawnTimer += delta;
 
-  const spawnRate = Math.max(250, 900 - wave * 35);
+  const spawnRate = Math.max(
+    250,
+    900 - wave * 35
+  );
 
   if (spawnTimer >= spawnRate) {
     spawnTimer = 0;
 
     const amount =
-      wave >= 8 && Math.random() < 0.25 ? 2 : 1;
+      wave >= 8 && Math.random() < 0.25
+        ? 2
+        : 1;
 
     for (let i = 0; i < amount; i++) {
       spawnEnemy();
@@ -163,12 +250,18 @@ function movePlayer() {
 
   player.x = Math.max(
     player.radius,
-    Math.min(canvas.width - player.radius, player.x)
+    Math.min(
+      canvas.width - player.radius,
+      player.x
+    )
   );
 
   player.y = Math.max(
     player.radius,
-    Math.min(canvas.height - player.radius, player.y)
+    Math.min(
+      canvas.height - player.radius,
+      player.y
+    )
   );
 }
 
@@ -194,7 +287,12 @@ function findNearestEnemy() {
 function shoot() {
   const now = Date.now();
 
-  if (now - player.lastShot < player.fireRate) return;
+  if (
+    now - player.lastShot <
+    player.fireRate
+  ) {
+    return;
+  }
 
   const target = findNearestEnemy();
 
@@ -223,15 +321,20 @@ function updateEnemies() {
   for (const enemy of enemies) {
     const dx = player.x - enemy.x;
     const dy = player.y - enemy.y;
+
     const distance = Math.hypot(dx, dy);
 
     if (distance > 0) {
-      enemy.x += dx / distance * enemy.speed;
-      enemy.y += dy / distance * enemy.speed;
+      enemy.x +=
+        dx / distance * enemy.speed;
+
+      enemy.y +=
+        dy / distance * enemy.speed;
     }
 
     if (
-      distance < player.radius + enemy.radius &&
+      distance <
+        player.radius + enemy.radius &&
       now - player.lastHit > 500
     ) {
       player.hp -= 10;
@@ -246,7 +349,11 @@ function updateEnemies() {
 }
 
 function updateBullets() {
-  for (let i = bullets.length - 1; i >= 0; i--) {
+  for (
+    let i = bullets.length - 1;
+    i >= 0;
+    i--
+  ) {
     const bullet = bullets[i];
 
     bullet.x += bullet.vx;
@@ -262,7 +369,11 @@ function updateBullets() {
       continue;
     }
 
-    for (let j = enemies.length - 1; j >= 0; j--) {
+    for (
+      let j = enemies.length - 1;
+      j >= 0;
+      j--
+    ) {
       const enemy = enemies[j];
 
       const distance = Math.hypot(
@@ -270,8 +381,12 @@ function updateBullets() {
         bullet.y - enemy.y
       );
 
-      if (distance < bullet.radius + enemy.radius) {
+      if (
+        distance <
+        bullet.radius + enemy.radius
+      ) {
         enemy.hp -= bullet.damage;
+
         bullets.splice(i, 1);
 
         if (enemy.hp <= 0) {
@@ -279,6 +394,8 @@ function updateBullets() {
 
           score++;
           waveKills++;
+
+          coins += 1;
 
           gems.push({
             x: enemy.x,
@@ -294,11 +411,16 @@ function updateBullets() {
 }
 
 function updateGems() {
-  for (let i = gems.length - 1; i >= 0; i--) {
+  for (
+    let i = gems.length - 1;
+    i >= 0;
+    i--
+  ) {
     const gem = gems[i];
 
     const dx = player.x - gem.x;
     const dy = player.y - gem.y;
+
     const distance = Math.hypot(dx, dy);
 
     if (distance < player.pickupRange) {
@@ -308,11 +430,16 @@ function updateGems() {
 
       if (player.xp >= player.xpNeeded) {
         player.xp -= player.xpNeeded;
+
         player.level++;
+
         player.xpNeeded =
-          Math.floor(player.xpNeeded * 1.35);
+          Math.floor(
+            player.xpNeeded * 1.35
+          );
 
         startLevelUp();
+
         break;
       }
     }
@@ -328,7 +455,12 @@ function startLevelUp() {
 }
 
 function chooseUpgrade(index) {
-  if (!levelUp || !upgradeChoices[index]) return;
+  if (
+    !levelUp ||
+    !upgradeChoices[index]
+  ) {
+    return;
+  }
 
   upgradeChoices[index].apply();
 
@@ -341,8 +473,38 @@ function chooseUpgrade(index) {
   upgradeChoices = [];
 }
 
+function completeWave() {
+  coins += 10 + wave * 2;
+
+  enemies.length = 0;
+  bullets.length = 0;
+  gems.length = 0;
+
+  wave++;
+
+  waveKills = 0;
+
+  waveTarget =
+    Math.floor(15 + wave * 4);
+
+  waveTimer = 0;
+
+  player.hp = Math.min(
+    player.maxHp,
+    player.hp + player.maxHp * 0.08
+  );
+
+  openShop();
+}
+
 function updateWave(delta) {
-  if (levelUp || gameOver) return;
+  if (
+    levelUp ||
+    gameOver ||
+    shopOpen
+  ) {
+    return;
+  }
 
   waveTimer += delta;
 
@@ -350,24 +512,58 @@ function updateWave(delta) {
     waveTimer >= waveDuration * 1000 ||
     waveKills >= waveTarget
   ) {
-    wave++;
-
-    waveKills = 0;
-    waveTarget = Math.floor(15 + wave * 4);
-
-    waveTimer = 0;
-
-    player.hp = Math.min(
-      player.maxHp,
-      player.hp + player.maxHp * 0.08
-    );
+    completeWave();
   }
+}
+
+function openShop() {
+  shopOpen = true;
+  generateShop();
+}
+
+function generateShop() {
+  shopChoices = [...shopItems]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+}
+
+function buyShopItem(index) {
+  const item = shopChoices[index];
+
+  if (!item) return;
+
+  if (coins < item.price) return;
+
+  coins -= item.price;
+
+  item.buy();
+
+  player.hp = Math.min(
+    player.hp,
+    player.maxHp
+  );
+
+  generateShop();
+}
+
+function rerollShop() {
+  if (coins < 5) return;
+
+  coins -= 5;
+
+  generateShop();
+}
+
+function leaveShop() {
+  shopOpen = false;
+  waveTimer = 0;
 }
 
 function updateHUD() {
   const secondsLeft = Math.max(
     0,
-    waveDuration - Math.floor(waveTimer / 1000)
+    waveDuration -
+      Math.floor(waveTimer / 1000)
   );
 
   document.querySelector("#hud").innerHTML = `
@@ -376,6 +572,7 @@ function updateHUD() {
     <span>XP: ${player.xp}/${player.xpNeeded}</span>
     <span>WAVE: ${wave}</span>
     <span>KILLS: ${score}</span>
+    <span>COINS: ${coins}</span>
     <span>${secondsLeft}s</span>
   `;
 }
@@ -399,34 +596,66 @@ function draw() {
 
   ctx.strokeStyle = "#191919";
 
-  for (let x = 0; x < canvas.width; x += 40) {
+  for (
+    let x = 0;
+    x < canvas.width;
+    x += 40
+  ) {
     ctx.beginPath();
+
     ctx.moveTo(x, 0);
     ctx.lineTo(x, canvas.height);
+
     ctx.stroke();
   }
 
-  for (let y = 0; y < canvas.height; y += 40) {
+  for (
+    let y = 0;
+    y < canvas.height;
+    y += 40
+  ) {
     ctx.beginPath();
+
     ctx.moveTo(0, y);
     ctx.lineTo(canvas.width, y);
+
     ctx.stroke();
   }
 
-  // XP gems
+  // Gems
+
   ctx.fillStyle = "#aaa";
 
   for (const gem of gems) {
     ctx.beginPath();
-    ctx.moveTo(gem.x, gem.y - 5);
-    ctx.lineTo(gem.x + 5, gem.y);
-    ctx.lineTo(gem.x, gem.y + 5);
-    ctx.lineTo(gem.x - 5, gem.y);
+
+    ctx.moveTo(
+      gem.x,
+      gem.y - 5
+    );
+
+    ctx.lineTo(
+      gem.x + 5,
+      gem.y
+    );
+
+    ctx.lineTo(
+      gem.x,
+      gem.y + 5
+    );
+
+    ctx.lineTo(
+      gem.x - 5,
+      gem.y
+    );
+
     ctx.closePath();
+
     ctx.fill();
   }
 
   // Bullets
+
   ctx.fillStyle = "#fff";
 
   for (const bullet of bullets) {
@@ -444,6 +673,7 @@ function draw() {
   }
 
   // Enemies
+
   ctx.fillStyle = "#777";
 
   for (const enemy of enemies) {
@@ -461,6 +691,7 @@ function draw() {
   }
 
   // Player
+
   ctx.fillStyle = "#fff";
 
   ctx.beginPath();
@@ -475,9 +706,11 @@ function draw() {
 
   ctx.fill();
 
-  // Level-up screen
+  // Level Up
+
   if (levelUp) {
-    ctx.fillStyle = "rgba(0,0,0,0.86)";
+    ctx.fillStyle =
+      "rgba(0,0,0,0.86)";
 
     ctx.fillRect(
       0,
@@ -508,7 +741,8 @@ function draw() {
 
     upgradeChoices.forEach(
       (upgrade, index) => {
-        const x = 160 + index * 240;
+        const x =
+          160 + index * 240;
 
         ctx.strokeStyle = "#444";
 
@@ -548,9 +782,120 @@ function draw() {
     );
   }
 
-  // Game over
+  // Shop
+
+  if (shopOpen) {
+    ctx.fillStyle =
+      "rgba(0,0,0,0.92)";
+
+    ctx.fillRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "32px Arial";
+
+    ctx.fillText(
+      "SHOP",
+      canvas.width / 2,
+      65
+    );
+
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#aaa";
+
+    ctx.fillText(
+      `Coins: ${coins}`,
+      canvas.width / 2,
+      95
+    );
+
+    shopChoices.forEach(
+      (item, index) => {
+        const x =
+          150 + index * 250;
+
+        ctx.strokeStyle =
+          coins >= item.price
+            ? "#555"
+            : "#252525";
+
+        ctx.strokeRect(
+          x - 95,
+          140,
+          190,
+          190
+        );
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "24px Arial";
+
+        ctx.fillText(
+          `${index + 1}`,
+          x,
+          175
+        );
+
+        ctx.font = "18px Arial";
+
+        ctx.fillText(
+          item.name,
+          x,
+          215
+        );
+
+        ctx.font = "13px Arial";
+        ctx.fillStyle = "#aaa";
+
+        ctx.fillText(
+          item.description,
+          x,
+          250
+        );
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Arial";
+
+        ctx.fillText(
+          `${item.price} coins`,
+          x,
+          290
+        );
+      }
+    );
+
+    ctx.fillStyle = "#aaa";
+    ctx.font = "14px Arial";
+
+    ctx.fillText(
+      "Press 1 / 2 / 3 to buy",
+      canvas.width / 2,
+      370
+    );
+
+    ctx.fillText(
+      "R = reroll (5 coins)",
+      canvas.width / 2,
+      395
+    );
+
+    ctx.fillText(
+      "ENTER = continue",
+      canvas.width / 2,
+      420
+    );
+  }
+
+  // Game Over
+
   if (gameOver) {
-    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.fillStyle =
+      "rgba(0,0,0,0.82)";
 
     ctx.fillRect(
       0,
@@ -586,13 +931,58 @@ function draw() {
   }
 }
 
+function restartGame() {
+  player.x = 400;
+  player.y = 250;
+
+  player.speed = 3.5;
+  player.hp = 100;
+  player.maxHp = 100;
+  player.damage = 25;
+  player.fireRate = 500;
+  player.lastShot = 0;
+  player.lastHit = 0;
+  player.xp = 0;
+  player.xpNeeded = 10;
+  player.level = 1;
+  player.pickupRange = 35;
+  player.bulletSpeed = 7;
+  player.bulletSize = 4;
+
+  enemies.length = 0;
+  bullets.length = 0;
+  gems.length = 0;
+
+  score = 0;
+  coins = 0;
+
+  gameOver = false;
+  levelUp = false;
+  shopOpen = false;
+
+  upgradeChoices = [];
+  shopChoices = [];
+
+  wave = 1;
+  waveKills = 0;
+  waveTarget = 15;
+  waveTimer = 0;
+  spawnTimer = 0;
+}
+
 let lastTime = performance.now();
 
 function gameLoop(timestamp) {
-  const delta = timestamp - lastTime;
+  const delta =
+    timestamp - lastTime;
+
   lastTime = timestamp;
 
-  if (!gameOver && !levelUp) {
+  if (
+    !gameOver &&
+    !levelUp &&
+    !shopOpen
+  ) {
     movePlayer();
     shoot();
     updateEnemies();
