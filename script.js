@@ -6,10 +6,11 @@ const player = {
   y: 250,
   radius: 12,
 
-  speed: 3.5,
+  speed: 4.5,
 
   hp: 100,
   maxHp: 100,
+  lastHit: 0
 
   damage: 25,
   fireRate: 500,
@@ -22,7 +23,7 @@ const player = {
   pickupRange: 35,
 
   bulletSpeed: 7,
-  bulletSize: 4,
+  bulletSize: 5,
 
   weapon: "Pistol"
 };
@@ -35,7 +36,7 @@ const weapons = {
     bullets: 1,
     spread: 0,
     bulletSpeed: 7,
-    bulletSize: 4
+    bulletSize: 5
   },
 
   Shotgun: {
@@ -45,7 +46,7 @@ const weapons = {
     bullets: 5,
     spread: 0.55,
     bulletSpeed: 6,
-    bulletSize: 4
+    bulletSize: 5
   },
 
   SMG: {
@@ -55,7 +56,7 @@ const weapons = {
     bullets: 1,
     spread: 0.08,
     bulletSpeed: 8,
-    bulletSize: 3
+    bulletSize: 4
   }
 };
 
@@ -97,8 +98,8 @@ const upgrades = [
 
   {
     name: "Move Faster",
-    description: "+0.5 movement speed",
-    apply: () => player.speed += 0.5
+    description: "+0.75 movement speed",
+    apply: () => player.speed += 0.75
   },
 
   {
@@ -1289,6 +1290,7 @@ function restartGame() {
 
   player.hp = 100;
   player.maxHp = 100;
+  player.lastHit = 0;
 
   player.weapon =
     "Pistol";
