@@ -1,385 +1,47 @@
-
-/* =========================================================
-   BROEGG — GAME UI
-   Dark arcade aesthetic | Responsive | Zero dependencies
-   ========================================================= */
-
-/* ---------- Design tokens ---------- */
-
-:root {
-  color-scheme: dark;
-
-  --bg: #050609;
-  --surface: #0b0e13;
-  --surface-raised: #111620;
-  --border: rgba(148, 163, 184, 0.16);
-  --border-bright: rgba(148, 163, 184, 0.32);
-
-  --text: #f1f5f9;
-  --text-muted: #8994a5;
-  --text-dim: #566172;
-
-  --accent: #b8ff65;
-  --accent-soft: rgba(184, 255, 101, 0.12);
-  --danger: #ff4d67;
-  --danger-soft: rgba(255, 77, 103, 0.12);
-
-  --radius: 8px;
-  --radius-lg: 13px;
-
-  --shadow:
-    0 24px 80px rgba(0, 0, 0, 0.55),
-    0 0 40px rgba(184, 255, 101, 0.025);
-
-  --font: "Segoe UI", Inter, system-ui, -apple-system,
-          BlinkMacSystemFont, sans-serif;
-
-  --mono: "SFMono-Regular", Consolas, "Liberation Mono",
-          monospace;
-}
-
-/* ---------- Reset ---------- */
-
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
-html {
-  min-width: 320px;
-  min-height: 100%;
-  background: var(--bg);
-  -webkit-text-size-adjust: 100%;
-}
-
 body {
-  min-height: 100vh;
-  min-height: 100dvh;
   margin: 0;
-  padding: clamp(14px, 3vw, 38px);
+  background: #050505;
+  color: #fff;
+  font-family: Arial, sans-serif;
 
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 
-  overflow-x: hidden;
-
-  color: var(--text);
-  background:
-    radial-gradient(
-      ellipse at 50% 38%,
-      rgba(25, 35, 40, 0.28),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse at 50% 100%,
-      rgba(184, 255, 101, 0.035),
-      transparent 55%
-    ),
-    var(--bg);
-
-  font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.5;
-
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
-
-/* Subtle background grid */
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-
-  background-image:
-    linear-gradient(
-      rgba(255, 255, 255, 0.018) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.018) 1px,
-      transparent 1px
-    );
-
-  background-size: 42px 42px;
-
-  mask-image: linear-gradient(
-    to bottom,
-    black,
-    transparent 90%
-  );
-
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    black,
-    transparent 90%
-  );
-}
-
-::selection {
-  color: #080b05;
-  background: var(--accent);
-}
-
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
-}
-
-/* ---------- Main game container ---------- */
 
 #game {
-  position: relative;
-  z-index: 1;
-
-  width: min(100%, 1100px);
-  min-width: 0;
-  margin: auto;
-
-  isolation: isolate;
+  width: 900px;
+  max-width: 95vw;
 }
-
-/* ---------- Heads-up display ---------- */
 
 #hud {
-  position: relative;
-
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px 20px;
+  align-items: center;
 
-  min-height: 56px;
-  padding: 13px 17px;
-  margin-bottom: 10px;
+  padding: 10px 4px;
 
-  color: var(--text-muted);
-  background:
-    linear-gradient(
-      115deg,
-      rgba(17, 22, 32, 0.96),
-      rgba(9, 12, 17, 0.96)
-    );
-
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.16);
-
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
-
-  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #ddd;
 }
-
-/* Make HUD values stand out without changing its HTML */
-
-#hud strong,
-#hud b {
-  color: var(--text);
-  font-weight: 750;
-}
-
-#hud span {
-  transition: color 160ms ease;
-}
-
-/* ---------- Game canvas ---------- */
 
 canvas {
-  position: relative;
   display: block;
 
   width: 100%;
   height: auto;
-  max-width: 100%;
 
-  /*
-   * Preserve crisp game rendering.
-   * The browser scales the canvas while retaining its
-   * intrinsic aspect ratio.
-   */
+  background: #0b0b0b;
 
-  background-color: #080b0f;
+  border: 1px solid #2a2a2a;
 
-  border: 1px solid var(--border-bright);
-  border-radius: var(--radius-lg);
-
-  box-shadow:
-    var(--shadow),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.015);
-
-  outline: none;
-  touch-action: manipulation;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
 }
 
-/* ---------- Interactive elements ---------- */
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button {
-  color: var(--text);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-button:not(:disabled) {
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease,
-    box-shadow 160ms ease;
-}
-
-/* Works automatically if your game has buttons */
-
-#game button {
-  padding: 10px 16px;
-
-  color: var(--text);
-  background: var(--surface-raised);
-
-  border: 1px solid var(--border-bright);
-  border-radius: var(--radius);
-
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-#game button:hover:not(:disabled) {
-  border-color: rgba(184, 255, 101, 0.6);
-  background: var(--accent-soft);
-}
-
-#game button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-/* ---------- Optional utility classes ---------- */
-/* Safe to use if you add these elements to your HTML. */
-
-.accent {
-  color: var(--accent);
-}
-
-.text-muted {
-  color: var(--text-muted);
-}
-
-.text-danger {
-  color: var(--danger);
-}
-
-.panel {
-  padding: 16px;
-
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-}
-
-.status-live {
-  color: var(--accent);
-}
-
-.status-dead {
-  color: var(--danger);
-}
-
-/* ---------- Responsive layout ---------- */
-
-@media (min-width: 1200px) {
-  #game {
-    width: min(100%, 1100px);
-  }
-
-  #hud {
-    padding: 15px 20px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 600px) {
-  body {
-    padding: 12px;
-    align-items: center;
-  }
-
-  #game {
-    width: 100%;
-  }
-
-  #hud {
-    gap: 8px 12px;
-    min-height: 46px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-
-    font-size: 10px;
-    letter-spacing: 0.04em;
-  }
-
-  canvas {
-    border-radius: 7px;
-  }
-
-  #game button {
-    padding: 9px 12px;
-    font-size: 11px;
-  }
-}
-
-/* ---------- Short screens / landscape ---------- */
-
-@media (max-height: 600px) and (min-width: 601px) {
-  body {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-
-  #game {
-    width: min(100%, 1000px);
-  }
-
-  #hud {
-    min-height: 42px;
-    padding: 8px 14px;
-    margin-bottom: 7px;
-  }
-}
-
-/* ---------- Reduced motion accessibility ---------- */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
