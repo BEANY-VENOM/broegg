@@ -12,7 +12,7 @@ const player = {
   maxHp: 100,
   lastHit: 0
 
-  damage: 25,
+  damage: 20,
   fireRate: 500,
   lastShot: 0,
 
@@ -31,8 +31,8 @@ const player = {
 const weapons = {
   Pistol: {
     name: "Pistol",
-    damage: 25,
-    fireRate: 500,
+    damage: 20,
+    fireRate: 850,
     bullets: 1,
     spread: 0,
     bulletSpeed: 7,
@@ -41,18 +41,18 @@ const weapons = {
 
   Shotgun: {
     name: "Shotgun",
-    damage: 14,
-    fireRate: 850,
+    damage: 30,
+    fireRate: 500,
     bullets: 5,
-    spread: 0.55,
+    spread: 1,
     bulletSpeed: 6,
     bulletSize: 5
   },
 
   SMG: {
     name: "SMG",
-    damage: 10,
-    fireRate: 130,
+    damage: 15,
+    fireRate: 1000,
     bullets: 1,
     spread: 0.08,
     bulletSpeed: 8,
